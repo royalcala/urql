@@ -7,9 +7,11 @@
   "author": "alcala.rao@gmail.com (Roy Alcala)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/urql-graphql/urql.git",
+    "url": "https://github.com/royalcala/urql.git",
     "directory": "exchanges/graphbase"
   },
+  "homepage": "https://github.com/royalcala/urql/tree/graphbase/exchanges/graphbase",
+  "bugs": "https://github.com/royalcala/urql/issues",
   "keywords": [
     "urql",
     "state management",
