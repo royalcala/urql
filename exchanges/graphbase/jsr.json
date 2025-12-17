@@ -1,0 +1,17 @@
+{
+  "name": "@urql/exchange-graphcache",
+  "version": "8.1.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./extras": "./src/extras/index.ts",
+    "./default-storage": "./src/default-storage/index.ts"
+  },
+  "exclude": [
+    "node_modules",
+    "cypress",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/*.test.*.snap",
+    "**/*.spec.*.snap"
+  ]
+}

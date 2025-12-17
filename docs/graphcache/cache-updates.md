@@ -672,6 +672,31 @@ cacheExchange({
 });
 ```
 
-### Reading on
+## Distinction Between `resolvers.Query` and `updates.Mutation`
 
-[On the next page we'll learn about "Schema Awareness".](./schema-awareness.md)
+To better understand how to interact with the cache, it's important to distinguish between `resolvers.Query` and `updates.Mutation`:
+
+- **`resolvers.Query`**:
+  - Passive and used for customizing how data is read from the cache.
+  - Cannot modify the cache.
+  - Example usage is detailed in the [Local Resolvers](./local-resolvers.md) section.
+
+- **`updates.Mutation`**:
+  - Active and used for modifying the cache in response to mutation results.
+  - Operates with side effects, allowing updates to the cache structure.
+  - Example:
+
+    ```js
+    cacheExchange({
+      updates: {
+        Mutation: {
+          addTodo: (result, args, cache) => {
+            const allTodos = cache.resolveQuery('todos') || [];
+            cache.writeQuery('todos', [...allTodos, result.addTodo]);
+          },
+        },
+      },
+    });
+    ```
+
+By leveraging `resolvers` for reading and `updates` for writing, you can maintain a clean separation of concerns in your cache interactions.

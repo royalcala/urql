@@ -11,7 +11,7 @@ Graphcache reads as it queries against its local cache, return links that would 
 cached, or even transform scalar records on the fly.
 
 The `resolvers` option on `cacheExchange` accepts a map of types with a nested map of fields, which
-means that we can add local resolvers to any field of any type. For example:
+means that we can add local resolvers to any field
 
 ```js
 cacheExchange({
@@ -234,7 +234,7 @@ However sometimes we'll need to resolve data from other fields in our resolvers.
 > **Note:** For records, if the other field is on the same `parent` entity, it may seem logical to access it on
 > `parent[otherFieldName]` as well, however the `parent` object will only be sparsely populated with
 > fields that the cache has already queried prior to reaching the resolver.
-> In the previous example, where we've created a resolver for `Todo.updatedAt` and accessed
+> In the previous example, where we've created a resolver for `Todo.updatedAt` and
 > `parent.updatedAt` to transform its value the `parent.updatedAt` field is essentially a shortcut
 > that allows us to get to the record quickly.
 
@@ -691,6 +691,73 @@ individually-cursored edges. For each paginated type, we must either
 always request nodes, or always request edges -- otherwise the lists
 cannot be stiched together.
 
+## Distinction Between `resolvers.Query` and `updates.Mutation`
+
+While `resolvers.Query` and `updates.Mutation` may seem similar in their ability to interact with the cache, they serve distinct purposes:
+
+- **`resolvers.Query`**:
+
+  - Used to customize how data is read from the cache during query resolution.
+  - Operates passively, meaning it cannot modify the cache.
+  - Ideal for transforming data or resolving links within the cache.
+  - Example:
+
+    ```js
+    cacheExchange({
+      resolvers: {
+        Query: {
+          customField: (parent, args, cache) => {
+            return cache.resolve(parent, 'someField');
+          },
+        },
+      },
+    });
+    ```
+
+- **`updates.Mutation`**:
+  - Used to actively modify the cache in response to mutation results.
+  - Operates with side effects, allowing updates to the cache structure.
+  - Example usage is detailed in the [Cache Updates](./cache-updates.md) section.
+
+By understanding these distinctions, you can effectively use `resolvers` for reading and `updates` for writing to the cache.
+
 ### Reading on
 
 [On the next page we'll learn about "Cache Directives".](./local-directives.md)
+
+### Invalidation and Garbage Collection
+
+When using `cache.invalidate` in Graphcache, it is important to understand its behavior:
+
+- **`cache.invalidate`**:
+
+  - Marks an entity or field as stale in the cache.
+  - This does not trigger a network refetch automatically. Instead, it ensures that the next time a query referencing the invalidated entity is executed, the cache will attempt to fetch fresh data.
+
+#### Key Points:
+
+- **No Manual Garbage Collection**:
+
+  - Graphcache handles garbage collection (removal of orphaned entities) automatically as part of its internal processes.
+  - There is no `cache.gc()` method to manually trigger garbage collection.
+
+- **No Automatic Refetch**:
+  - `cache.invalidate` does not trigger network requests unless a query is explicitly re-executed.
+  - Refetching only occurs when a query is manually re-executed or triggered by a subscription/mutation.
+
+#### Example:
+
+```typescript
+cacheExchange({
+  updates: {
+    Mutation: {
+      deleteRow: (result, args, cache, info) => {
+        // Invalidate the entity
+        cache.invalidate({ __typename: 'Row', id: args.id });
+      },
+    },
+  },
+});
+```
+
+This ensures that the entity is marked as stale in the cache without triggering any network requests.
